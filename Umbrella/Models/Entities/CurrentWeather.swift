@@ -6,7 +6,7 @@
 //
 
 import Foundation
-struct CurrentWeather: Codable {
+struct CurrentWeather: Codable, Sendable, Equatable  {
     let lastUpdatedEpoch: Int
     let lastUpdated: String
     let tempC: Double

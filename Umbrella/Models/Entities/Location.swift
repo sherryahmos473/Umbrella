@@ -5,8 +5,7 @@
 //  Created by Sherry Ahmos on 26/05/2026.
 //
 
-import Foundation
-struct Location: Codable {
+struct Location: Codable, Sendable, Equatable {
     let name: String
     let region: String
     let country: String
@@ -17,9 +16,8 @@ struct Location: Codable {
     let localtime: String
 
     enum CodingKeys: String, CodingKey {
-        case name, region, country, lat, lon
-        case tzId = "tz_id"
+        case name, region, country, lat, lon, localtime
+        case tzId           = "tz_id"
         case localtimeEpoch = "localtime_epoch"
-        case localtime
     }
 }

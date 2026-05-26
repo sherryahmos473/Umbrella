@@ -4,63 +4,82 @@
 //
 //  Created by Sherry Ahmos on 26/05/2026.
 //
-
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+
+    @State private var viewModel = WeatherViewModel()
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
+        NavigationStack {
+            stateView
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .navigationTitle("Umbrella ☂️")
+                .task {
+                    await viewModel.fetchWeatherForCurrentLocation()
                 }
-                .onDelete(perform: deleteItems)
-            }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-        } detail: {
-            Text("Select an item")
         }
     }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+    @ViewBuilder
+    private var stateView: some View {
+        switch viewModel.state {
+        case .loading:
+            ProgressView("Fetching weather…")
+                .progressViewStyle(.circular)
+        case .success(let data):
+            ScrollView {
+                WeatherDetailView(data: data)
+                    .padding()
             }
+        case .failure(let message):
+            ContentUnavailableView(
+                "Something went wrong",
+                systemImage: "exclamationmark.triangle",
+                description: Text(message)
+            )
         }
     }
 }
 
-#Preview {
-    ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+// MARK: - WeatherDetailView
+
+struct WeatherDetailView: View {
+    let data: WeatherData
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Text(data.location.name)
+                .font(.largeTitle.bold())
+            Text("\(data.location.region), \(data.location.country)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Text("\(data.current.tempC, specifier: "%.1f")°C")
+                .font(.system(size: 64, weight: .thin))
+
+            Text(data.current.condition.text)
+                .font(.title3)
+
+            Divider()
+
+            Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 10) {
+                weatherRow(label: "Feels like", value: "\(data.current.feelslikeC, default: "%.1f")°C")
+                weatherRow(label: "Humidity",   value: "\(data.current.humidity)%")
+                weatherRow(label: "Wind",       value: "\(data.current.windKph, default: "%.1f") km/h \(data.current.windDir)")
+                weatherRow(label: "Visibility", value: "\(data.current.visKm, default: "%.1f") km")
+                weatherRow(label: "UV Index",   value: "\(data.current.uv, default: "%.1f")")
+                weatherRow(label: "Pressure",   value: "\(data.current.pressureMb, default: "%.0f") mb")
+            }
+        }
+        .padding()
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func weatherRow(label: String, value: String) -> some View {
+        GridRow {
+            Text(label).foregroundStyle(.secondary)
+            Text(value).fontWeight(.medium)
+        }
+    }
 }
