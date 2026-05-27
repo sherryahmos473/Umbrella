@@ -8,17 +8,17 @@
 import SwiftUI
 
 struct WeatherDetailView: View {
-    let data: WeatherData
+    let data: WeatherResponse
     
     var body: some View {
         VStack(spacing: 20) {
             VStack(spacing: 4) {
                 Text(data.location.name)
-                    .font(.largeTitle.bold())
+                    .font(.largeTitle)
                     .foregroundStyle(.white)
                 Text("\(data.location.region), \(data.location.country)")
                     .font(.subheadline)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
             }
             
             VStack(spacing: 8) {
@@ -28,10 +28,18 @@ struct WeatherDetailView: View {
                     .accessibilityLabel("\(Int(data.current.tempC)) degrees Celsius")
                 Text(data.current.condition.text)
                     .font(.title3)
-                .foregroundStyle(.primary)
+                .foregroundStyle(.white)
             }
             
             Divider()
+            VStack(spacing: 10) {
+                ForEach(data.forecast.forecastday, id: \.dateEpoch) { day in
+                    ForecastCell(forecast: day)
+                }
+            }
+            .padding(.horizontal)
+            Divider()
+
             Grid(horizontalSpacing: 16, verticalSpacing: 16) {
                 GridRow {
                     WeatherMetricCell(

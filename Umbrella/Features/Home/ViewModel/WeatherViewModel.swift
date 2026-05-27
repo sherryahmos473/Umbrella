@@ -11,7 +11,7 @@ import CoreLocation
 
 enum WeatherViewState: Equatable {
     case loading
-    case success(WeatherData)
+    case success(WeatherResponse)
     case failure(String)
 }
 
@@ -21,7 +21,7 @@ final class WeatherViewModel {
 
     private(set) var state: WeatherViewState = .loading
 
-    var weather: WeatherData? {
+    var weather: WeatherResponse? {
         if case .success(let data) = state { return data }
         return nil
     }

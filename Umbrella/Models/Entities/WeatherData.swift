@@ -7,7 +7,8 @@
 // WeatherData.swift
 import Foundation
 
-struct WeatherData: Codable, Sendable, Equatable {
+struct WeatherResponse: Codable, Sendable, Equatable {
     let location: Location
     let current: CurrentWeather
+    let forecast: Forecast
 }

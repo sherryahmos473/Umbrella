@@ -7,7 +7,7 @@
 import Foundation
 
 protocol WeatherNetworkManagerProtocol: Sendable {
-    func fetchCurrentWeather(for city: String) async throws -> WeatherData
+    func fetchCurrentWeather(for city: String) async throws -> WeatherResponse
 }
 
 final class WeatherNetworkManager: WeatherNetworkManagerProtocol, Sendable {
@@ -15,7 +15,7 @@ final class WeatherNetworkManager: WeatherNetworkManagerProtocol, Sendable {
     static let shared = WeatherNetworkManager()
     private init() {}
 
-    private let baseURL = "https://api.weatherapi.com/v1/current.json"
+    private let baseURL = "https://api.weatherapi.com/v1/forecast.json"
 
     private let decoder = JSONDecoder()  
 
@@ -29,14 +29,16 @@ final class WeatherNetworkManager: WeatherNetworkManagerProtocol, Sendable {
         }
     }
 
-    func fetchCurrentWeather(for city: String) async throws -> WeatherData {
+    func fetchCurrentWeather(for city: String) async throws -> WeatherResponse {
         let key = try apiKey
 
         var components = URLComponents(string: baseURL)!
         components.queryItems = [
             URLQueryItem(name: "key", value: key),
             URLQueryItem(name: "q",   value: city),
-            URLQueryItem(name: "aqi", value: "no")
+            URLQueryItem(name: "aqi", value: "no"),
+            URLQueryItem(name: "alerts", value: "no"),
+            URLQueryItem(name: "days", value: "3")
         ]
 
         guard let url = components.url else { throw NetworkError.invalidURL }
@@ -56,7 +58,8 @@ final class WeatherNetworkManager: WeatherNetworkManagerProtocol, Sendable {
         }
 
         do {
-            return try decoder.decode(WeatherData.self, from: data)
+            print(data)
+            return try decoder.decode(WeatherResponse.self, from: data)
         } catch let error as DecodingError {
             switch error {
             case .keyNotFound(let key, let ctx):
