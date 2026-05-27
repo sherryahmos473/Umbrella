@@ -40,6 +40,7 @@ final class WeatherViewModel {
             let location = try await locationService.requestLocation()
             let city     = await reverseGeocode(location)
             print("📍 Resolved city: \(city)")
+            print(Calendar.current.component(.hour, from: Date()))
             await fetch(for: city)
         } catch let error as LocationError {
             state = .failure(error.message)
