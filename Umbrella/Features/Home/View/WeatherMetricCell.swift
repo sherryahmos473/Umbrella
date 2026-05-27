@@ -20,12 +20,12 @@ struct WeatherMetricCell: View {
                 .frame(width: 30, height: 30)
                 .foregroundStyle(.blue)
             Text(label)
-                .font(.subheadline.bold())
-                .foregroundStyle(.secondary)
+                .font(.subheadline)
             Text(value)
                 .font(.subheadline.bold())
                 .multilineTextAlignment(.center)
         }
+        .padding()
         .frame(maxWidth: 150, maxHeight: 150)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24))
 

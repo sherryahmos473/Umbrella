@@ -8,45 +8,42 @@
 import SwiftUI
 
 struct ForecastCell: View {
-    let forecast: ForecastDay
+    var label:String
+    var condition:String
+    var icon:String
+    var maxTemp:Int
+    var minTemp:Int
     
     var body: some View {
         HStack {
-            Text(forecast.date)
+            Text(label)
                 .font(.body.bold())
-            AsyncImage(url: URL(string: "https:\(forecast.day.condition.icon)")) { phase in
+                .foregroundStyle(.primary)
+            AsyncImage(url: URL(string: "https:\(icon)")) { phase in
                 switch phase {
-                case .empty:
-                    ProgressView()
                 case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFit()
-                case .failure:
-                    Image(systemName: "cloud.sun.fill") 
-                        .foregroundColor(.secondary)
-                @unknown default:
-                    EmptyView()
+                    image.resizable().scaledToFit()
+                default:
+                    Image(systemName: "cloud.sun.fill")
                 }
             }
-            .frame(width: 45, height: 45)
-            Text(forecast.day.condition.text)
-                .font(.system(.body, design: .rounded, weight: .semibold))
-                .foregroundStyle(.secondary)
+            .frame(width: 36, height: 36)
+            Text(condition)
+                .font(.subheadline)
             
             HStack(spacing: 8) {
-                    Text("\(Int(forecast.day.maxtempC))°")
-                    .font(.system(.subheadline, design: .rounded, weight: .bold))
+                    Text("\(maxTemp)°")
+                    .font(.system(.body, design: .rounded, weight: .bold))
                         .foregroundStyle(.primary)
                         .monospacedDigit()
                     
-                    Text("\(Int(forecast.day.mintempC))°")
-                        .font(.system(.body, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
+                    Text("\(minTemp)°")
+                    .font(.subheadline)
                 }
         }
         .padding()
+        .frame(width: 370,height: 60)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .padding(.vertical, 8)
     }
 }
