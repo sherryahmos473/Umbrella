@@ -18,13 +18,8 @@ enum WeatherViewState: Equatable {
 @MainActor
 @Observable
 final class WeatherViewModel {
-
     private(set) var state: WeatherViewState = .loading
 
-    var weather: WeatherResponse? {
-        if case .success(let data) = state { return data }
-        return nil
-    }
     var isLoading: Bool { state == .loading }
 
     private let networkManager: any WeatherNetworkManagerProtocol
@@ -38,12 +33,23 @@ final class WeatherViewModel {
         state = .loading
         do {
             let location = try await locationService.requestLocation()
-            let city     = await reverseGeocode(location)
+            let city = await reverseGeocode(location)
             print("📍 Resolved city: \(city)")
-            print(Calendar.current.component(.hour, from: Date()))
-            await fetch(for: city)
+            await fetchWeather(for: city)
         } catch let error as LocationError {
             state = .failure(error.message)
+        } catch {
+            state = .failure(error.localizedDescription)
+        }
+    }
+
+    func fetchWeather(for cityName: String) async {
+        state = .loading
+        do {
+            let data = try await networkManager.fetchCurrentWeather(for: cityName)
+            state = .success(data)
+        } catch let error as NetworkError {
+            state = .failure(error.localizedDescription)
         } catch {
             state = .failure(error.localizedDescription)
         }
@@ -58,17 +64,6 @@ final class WeatherViewModel {
                     ?? "\(location.coordinate.latitude),\(location.coordinate.longitude)"
                 continuation.resume(returning: city)
             }
-        }
-    }
-
-    private func fetch(for query: String) async {
-        do {
-            let data = try await networkManager.fetchCurrentWeather(for: query)
-            state = .success(data)
-        } catch let error as NetworkError {
-            state = .failure(error.localizedDescription)
-        } catch {
-            state = .failure(error.localizedDescription)
         }
     }
 }

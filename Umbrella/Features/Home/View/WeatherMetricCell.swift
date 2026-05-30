@@ -18,16 +18,23 @@ struct WeatherMetricCell: View {
                 .resizable()
                 .scaledToFit() 
                 .frame(width: 30, height: 30)
-                .foregroundStyle(.blue)
+                .foregroundStyle(.white)
             Text(label)
                 .font(.subheadline)
+                .foregroundStyle(.white)
             Text(value)
                 .font(.subheadline.bold())
                 .multilineTextAlignment(.center)
+                .foregroundStyle(.white)
         }
         .padding()
-        .frame(maxWidth: 150, maxHeight: 150)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24))
+        .frame(maxWidth: 150, maxHeight: 200)
+        .background(
+            RoundedRectangle(cornerRadius: 22)
+                .fill(.white.opacity(0.12))
+                .stroke(.white.opacity(0.18), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.12), radius: 10, y: 4)
 
     }
 }

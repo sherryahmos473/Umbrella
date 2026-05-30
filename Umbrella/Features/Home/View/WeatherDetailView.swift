@@ -34,17 +34,12 @@ struct WeatherDetailView: View {
             Divider().overlay(.white.opacity(0.3))
 
             VStack(spacing: 10) {
-                Text("3-day forecast")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
                 ForEach(data.forecast.forecastday, id: \.dateEpoch) { day in
                     NavigationLink {
                         DailyDetailsView(data: day.hour)
                     } label: {
                         ForecastCell(
-                            label: day.date,
+                            label: formattedLabel(for: day.date),
                             condition: day.day.condition.text,
                             icon: day.day.condition.icon,
                             maxTemp: Int(day.day.maxtempC),
@@ -63,19 +58,19 @@ struct WeatherDetailView: View {
                     WeatherMetricCell(icon: "thermometer.medium", label: "Feels Like",
                                       value: "\(data.current.feelslikeC, default: "%.1f")°C")
                     WeatherMetricCell(icon: "humidity", label: "Humidity",
-                        value: "\(data.current.humidity)%")
+                                      value: "\(data.current.humidity)%")
                 }
                 GridRow {
                     WeatherMetricCell(icon: "wind", label: "Wind",
-                        value: "\(data.current.windKph, default: "%.1f") km/h \(data.current.windDir)")
+                                      value: "\(data.current.windKph, default: "%.1f") km/h \(data.current.windDir)")
                     WeatherMetricCell(icon: "eye", label: "Visibility",
-                        value: "\(data.current.visKm, default: "%.1f") km")
+                                      value: "\(data.current.visKm, default: "%.1f") km")
                 }
                 GridRow {
                     WeatherMetricCell(icon: "sun.max", label: "UV Index",
-                        value: "\(data.current.uv, default: "%.1f")")
+                                      value: "\(data.current.uv, default: "%.1f")")
                     WeatherMetricCell(icon: "barometer", label: "Pressure",
-                        value: "\(data.current.pressureMb, default: "%.0f") mb")
+                                      value: "\(data.current.pressureMb, default: "%.0f") mb")
                 }
             }
             .padding(.horizontal)
@@ -83,4 +78,19 @@ struct WeatherDetailView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical)
     }
+}
+private func formattedLabel(for dateString: String) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+
+    guard let date = formatter.date(from: dateString) else {
+        return dateString
+    }
+
+    if Calendar.current.isDateInToday(date) {
+        return "Today"
+    }
+
+    formatter.dateFormat = "EEEE"
+    return formatter.string(from: date)
 }
