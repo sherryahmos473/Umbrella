@@ -19,6 +19,7 @@ struct HourlyCell: View {
             Text(time)
                 .font(.subheadline.bold())
                 .frame(width: 55, alignment: .leading)
+                .foregroundStyle(.white)
                 .monospacedDigit()
 
             AsyncImage(url: URL(string: "https:\(icon)")) { phase in
@@ -35,15 +36,18 @@ struct HourlyCell: View {
                 .font(.subheadline)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
+                .foregroundStyle(.white)
 
             Spacer()
 
             VStack(alignment: .trailing, spacing: 2) {
                 Text("\(temp)°C")
                     .font(.subheadline.bold())
+                    .foregroundStyle(.white)
                 Text("Feels \(feelsLike)°")
                     .font(.caption)
                     .opacity(0.7)
+                    .foregroundStyle(.white)
             }
             .monospacedDigit()
         }

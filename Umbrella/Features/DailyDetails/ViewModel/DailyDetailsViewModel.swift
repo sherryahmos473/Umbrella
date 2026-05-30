@@ -6,9 +6,7 @@
 //
 
 import Foundation
-import Observation
 
-@MainActor
 @Observable
 final class DailyDetailsViewModel {
 
@@ -19,9 +17,27 @@ final class DailyDetailsViewModel {
     }
 
     var upcomingHours: [HourForecast] {
-        let currentEpoch = Int(Date().timeIntervalSince1970)
-        let upcoming = hourlyData.filter { $0.timeEpoch >= currentEpoch }
-        return upcoming.isEmpty ? hourlyData : upcoming
+
+        let now = Date()
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+
+        guard let firstHour = hourlyData.first,
+              let firstDate = formatter.date(from: firstHour.time),
+              Calendar.current.isDateInToday(firstDate)
+        else {
+            return hourlyData
+        }
+
+        return hourlyData.filter {
+
+            guard let hourDate = formatter.date(from: $0.time) else {
+                return false
+            }
+
+            return hourDate >= now
+        }
     }
 
     func formattedTime(_ timeString: String) -> String {
@@ -32,3 +48,4 @@ final class DailyDetailsViewModel {
         return formatter.string(from: date)
     }
 }
+
