@@ -9,18 +9,11 @@ import Foundation
 import Observation
 import CoreLocation
 
-enum WeatherViewState: Equatable {
-    case loading
-    case success(WeatherResponse)
-    case failure(String)
-}
-
 @MainActor
 @Observable
 final class WeatherViewModel {
-    private(set) var state: WeatherViewState = .loading
+    private(set) var state: ViewState<WeatherResponse> = .loading
 
-    var isLoading: Bool { state == .loading }
 
     private let networkManager: any WeatherNetworkManagerProtocol
     private let locationService = LocationService()

@@ -4,33 +4,40 @@
 //
 //  Created by Sherry Ahmos on 26/05/2026.
 //
+//
+//  ContentView.swift
+//  Umbrella
+//
 
 import SwiftUI
 
 struct ContentView: View {
-    @State private var viewModel = WeatherViewModel()
-    @State private var showCityList = false
 
-    var isNight: Bool {
-        let hour = Calendar.current.component(.hour, from: Date())
-        return hour < 6 || hour >= 18
-    }
+    @State private var viewModel = WeatherViewModel()
+
+    @State private var showCityList = false
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Image(isNight ? "night_sky" : "day_sky")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .ignoresSafeArea()
-                    .blur(radius: 10, opaque: true)
-
-                stateView
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            ViewStateContainer(state: viewModel.state) { data in
+                ScrollView {
+                    WeatherDetailView(data: data)
+                        .padding(.vertical)
+                }
+                .gesture(
+                    DragGesture(minimumDistance: 50)
+                        .onEnded(handleSwipe)
+                )
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .withWeatherBackground()
+            .refreshable {
+                await viewModel.fetchWeatherForCurrentLocation()
             }
             .task {
                 await viewModel.fetchWeatherForCurrentLocation()
             }
+
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
@@ -44,45 +51,24 @@ struct ContentView: View {
             }
 
             .navigationDestination(isPresented: $showCityList) {
+
                 CityListView()
             }
         }
     }
 
-    @ViewBuilder
-    private var stateView: some View {
-        switch viewModel.state {
+    private func handleSwipe(_ value: DragGesture.Value) {
 
-        case .loading:
-            ProgressView("Fetching weather…")
-                .progressViewStyle(.circular)
-                .tint(.white)
+        let isLeftSwipe = value.translation.width < -50
 
-        case .success(let data):
-            ScrollView {
-                WeatherDetailView(data: data)
-                    .padding(.vertical)
-            }
-            .gesture(
-                DragGesture(minimumDistance: 50)
-                    .onEnded { value in
-                        let isLeftSwipe = value.translation.width < -50
-                        let isHorizontal =
-                        abs(value.translation.width) >
-                        abs(value.translation.height)
+        let isHorizontal = abs(value.translation.width) > abs(value.translation.height)
 
-                        if isLeftSwipe && isHorizontal {
-                            showCityList = true
-                        }
-                    }
-            )
-
-        case .failure(let message):
-            ContentUnavailableView(
-                "Something went wrong",
-                systemImage: "exclamationmark.triangle",
-                description: Text(message)
-            )
+        if isLeftSwipe && isHorizontal {
+            showCityList = true
         }
     }
+}
+
+#Preview {
+    ContentView()
 }

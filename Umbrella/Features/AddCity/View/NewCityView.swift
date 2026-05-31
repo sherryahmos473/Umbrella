@@ -13,25 +13,14 @@ struct AddCityView: View {
     
     @State private var showSnackbar = false
     @State private var addedCityName = ""
-    
-    var isNight: Bool {
-        let hour = Calendar.current.component(.hour, from: Date())
-        return hour < 6 || hour >= 18
-    }
-    
-    let countries = ["Cairo", "Alexandria", "London", "New York","Span","Germany","Italy","Japan"]
+
     
     var body: some View {
         ZStack {
-            Image(isNight ? "night_sky" : "day_sky")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .ignoresSafeArea()
-                .blur(radius: 10, opaque: true)
             
             ScrollView {
                 VStack(spacing: 12) {
-                    ForEach(countries, id: \.self) { city in
+                    ForEach(viewModel.countries, id: \.self) { city in
                         AddCity(city: city) {
                             addedCityName = city
                             viewModel.addCityToFavorites(city)
@@ -44,10 +33,8 @@ struct AddCityView: View {
             if showSnackbar {
                 CustomSnackBar(name: addedCityName)
             }
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+        }.withWeatherBackground()
+        .weatherNavigationStyle()
         .navigationTitle("Add City")
         
         .onChange(of: viewModel.isSaveSuccess) { _, isSuccess in
