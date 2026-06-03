@@ -12,19 +12,26 @@ enum NetworkError: LocalizedError {
     case invalidCity
     case missingAPIKey
     case rateLimited
-    case decodingFailed
     case noInternet
+    case decodingError
     case serverError(String)
 
     var errorDescription: String? {
         switch self {
-        case .invalidURL:       return "The request URL was invalid."
-        case .invalidCity:      return "City not found. Please check the name and try again."
-        case .missingAPIKey:    return "API key is missing or invalid."
-        case .rateLimited:      return "Too many requests. Please wait a moment."
-        case .decodingFailed:   return "Failed to decode the server response."
-        case .noInternet:       return "No internet connection."
-        case .serverError(let msg): return "Server error: \(msg)"
+        case .noInternet:
+            return "No Internet Connection"
+        case .invalidCity:
+            return "City not found"
+        case .missingAPIKey:
+            return "Missing API Key"
+        case .rateLimited:
+            return "Too many requests"
+        case .decodingError:
+            return "Unable to read weather data"
+        case .invalidURL:
+            return "Invalid URL"
+        case .serverError(let message):
+            return message
         }
     }
 }

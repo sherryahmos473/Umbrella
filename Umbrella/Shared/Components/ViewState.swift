@@ -10,5 +10,6 @@ import Foundation
 enum ViewState<T> {
     case loading
     case success(T)
+    case noInternet
     case failure(String)
 }

@@ -35,45 +35,56 @@ final class WeatherNetworkManager: WeatherNetworkManagerProtocol, Sendable {
         var components = URLComponents(string: baseURL)!
         components.queryItems = [
             URLQueryItem(name: "key", value: key),
-            URLQueryItem(name: "q",   value: city),
+            URLQueryItem(name: "q", value: city),
             URLQueryItem(name: "aqi", value: "no"),
             URLQueryItem(name: "alerts", value: "no"),
             URLQueryItem(name: "days", value: "3")
         ]
 
-        guard let url = components.url else { throw NetworkError.invalidURL }
+        guard let url = components.url else {
+            throw NetworkError.invalidURL
+        }
 
-        let (data, response) = try await URLSession.shared.data(from: url)
+        let data: Data
+        let response: URLResponse
+
+        do {
+            (data, response) = try await URLSession.shared.data(from: url)
+        } catch let error as URLError {
+
+            switch error.code {
+            case .notConnectedToInternet,
+                 .networkConnectionLost,
+                 .cannotConnectToHost,
+                 .cannotFindHost:
+                throw NetworkError.noInternet
+
+            default:
+                throw error
+            }
+        }
 
         guard let http = response as? HTTPURLResponse else {
             throw NetworkError.serverError("Invalid response")
         }
 
         switch http.statusCode {
-        case 200...299: break
-        case 400:       throw NetworkError.invalidCity
-        case 401:       throw NetworkError.missingAPIKey
-        case 429:       throw NetworkError.rateLimited
-        default:        throw NetworkError.serverError("HTTP \(http.statusCode)")
+        case 200...299:
+            break
+        case 400:
+            throw NetworkError.invalidCity
+        case 401:
+            throw NetworkError.missingAPIKey
+        case 429:
+            throw NetworkError.rateLimited
+        default:
+            throw NetworkError.serverError("HTTP \(http.statusCode)")
         }
 
         do {
-            print(data)
             return try decoder.decode(WeatherResponse.self, from: data)
-        } catch let error as DecodingError {
-            switch error {
-            case .keyNotFound(let key, let ctx):
-                print("❌ Key '\(key.stringValue)' not found at \(ctx.codingPath.map(\.stringValue))")
-            case .typeMismatch(_, let ctx):
-                print("❌ Type mismatch at \(ctx.codingPath.map(\.stringValue)): \(ctx.debugDescription)")
-            case .valueNotFound(_, let ctx):
-                print("❌ Value not found at \(ctx.codingPath.map(\.stringValue))")
-            case .dataCorrupted(let ctx):
-                print("❌ Corrupted: \(ctx.debugDescription)")
-            @unknown default:
-                print("❌ \(error)")
-            }
-            throw NetworkError.decodingFailed
+        } catch {
+            throw NetworkError.decodingError
         }
     }
 }

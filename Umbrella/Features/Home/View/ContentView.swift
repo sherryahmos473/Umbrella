@@ -14,45 +14,61 @@ import SwiftUI
 struct ContentView: View {
 
     @State private var viewModel = WeatherViewModel()
-
+    @State private var networkMonitor = NetworkMonitor.shared
     @State private var showCityList = false
-
     var body: some View {
-        NavigationStack {
-            ViewStateContainer(state: viewModel.state) { data in
-                ScrollView {
-                    WeatherDetailView(data: data)
-                        .padding(.vertical)
-                }
-                .gesture(
-                    DragGesture(minimumDistance: 50)
-                        .onEnded(handleSwipe)
-                )
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .withWeatherBackground()
-            .refreshable {
-                await viewModel.fetchWeatherForCurrentLocation()
-            }
-            .task {
-                await viewModel.fetchWeatherForCurrentLocation()
-            }
+        ZStack(alignment: .top) {
 
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink {
-                        AddCityView()
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.body.bold())
-                            .foregroundStyle(.white)
+            NavigationStack {
+                ViewStateContainer(state: viewModel.state) { data in
+                    ScrollView {
+                        WeatherDetailView(data: data)
+                            .padding(.vertical)
+                    }
+                    .gesture(
+                        DragGesture(minimumDistance: 50)
+                            .onEnded(handleSwipe)
+                    )
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .withWeatherBackground()
+                .onChange(of: networkMonitor.isConnected) { _, isConnected in
+                    if isConnected {
+                        Task {
+                            await viewModel.fetchWeatherForCurrentLocation()
+                        }
                     }
                 }
+                .refreshable {
+                    await viewModel.fetchWeatherForCurrentLocation()
+                }
+                .task {
+                    await viewModel.fetchWeatherForCurrentLocation()
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink {
+                            AddCityView()
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.body.bold())
+                                .foregroundStyle(.white)
+                        }
+                    }
+                }
+                .navigationDestination(isPresented: $showCityList) {
+                    CityListView()
+                }
             }
 
-            .navigationDestination(isPresented: $showCityList) {
-
-                CityListView()
+            if !networkMonitor.isConnected {
+                Text("No Internet Connection")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(.red)
+                    .transition(.move(edge: .top))
             }
         }
     }

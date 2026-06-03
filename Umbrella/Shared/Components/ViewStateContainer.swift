@@ -33,12 +33,19 @@ struct ViewStateContainer<Content: View, T>: View {
         case .success(let value):
             content(value)
 
-        case .failure(let message):
-            ContentUnavailableView(
-                "Something went wrong",
-                systemImage: "exclamationmark.triangle",
-                description: Text(message)
-            )
-        }
+        case .noInternet:
+               ContentUnavailableView(
+                   "No Internet Connection",
+                   systemImage: "wifi.slash",
+                   description: Text("Please check your connection and try again.")
+               ).foregroundStyle(.white)
+
+           case .failure(let message):
+               ContentUnavailableView(
+                   "Something went wrong",
+                   systemImage: "exclamationmark.triangle",
+                   description: Text(message)
+               ).foregroundStyle(.white)
+           }
     }
 }

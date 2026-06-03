@@ -18,6 +18,9 @@ final class WeatherViewModel {
     private let networkManager: any WeatherNetworkManagerProtocol
     private let locationService = LocationService()
 
+    let networkMonitor = NetworkMonitor.shared
+
+
     init(networkManager: any WeatherNetworkManagerProtocol = WeatherNetworkManager.shared) {
         self.networkManager = networkManager
     }
@@ -37,13 +40,34 @@ final class WeatherViewModel {
     }
 
     func fetchWeather(for cityName: String) async {
+
+        print("Fetching weather for:", cityName)
+
+        guard networkMonitor.isConnected else {
+            print("No internet")
+            state = .noInternet
+            return
+        }
+
         state = .loading
+
         do {
             let data = try await networkManager.fetchCurrentWeather(for: cityName)
+            print("Success")
             state = .success(data)
+
         } catch let error as NetworkError {
-            state = .failure(error.localizedDescription)
+            print("NetworkError:", error)
+
+            switch error {
+            case .noInternet:
+                state = .noInternet
+            default:
+                state = .failure(error.localizedDescription)
+            }
+
         } catch {
+            print("Error:", error)
             state = .failure(error.localizedDescription)
         }
     }
