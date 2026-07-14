@@ -20,8 +20,8 @@ struct CityWeatherView: View {
                 WeatherDetailView(data: data)
                     .padding(.vertical)
             }
+            .withWeatherBackground(localtime: data.location.localtime)
         }
-        .withWeatherBackground()
         .navigationTitle(cityName)
         .weatherNavigationStyle()
 

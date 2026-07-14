@@ -8,11 +8,13 @@ import SwiftUI
 
 struct DailyDetailsView: View {
     let data: [HourForecast]
+    let localtime: String?
 
     @State private var viewModel: DailyDetailsViewModel
 
-    init(data: [HourForecast]) {
+    init(data: [HourForecast], localtime: String? = nil) {
         self.data = data
+        self.localtime = localtime
         _viewModel = State(initialValue: DailyDetailsViewModel(hourlyData: data))
     }
 
@@ -30,7 +32,7 @@ struct DailyDetailsView: View {
                 }
             }
             .padding()
-        }.withWeatherBackground()
+        }.withWeatherBackground(localtime: localtime)
         .navigationTitle("Hourly Forecast")
         .weatherNavigationStyle()
     }

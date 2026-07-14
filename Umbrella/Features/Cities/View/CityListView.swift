@@ -14,6 +14,8 @@ struct CityListView: View {
     @Query(sort: \City.addedAt) private var cities: [City]
 
     @Environment(\.modelContext) private var modelContext
+    
+    @Environment(\.homeLocationLocaltime) private var homeLocationLocaltime
 
     @StateObject private var viewModel = CityListViewModel()
 
@@ -54,7 +56,7 @@ struct CityListView: View {
                 }
             }
         }
-        .withWeatherBackground()
+        .withWeatherBackground(localtime: homeLocationLocaltime)
         .navigationTitle("My Cities")
         .weatherNavigationStyle()
         .searchable(

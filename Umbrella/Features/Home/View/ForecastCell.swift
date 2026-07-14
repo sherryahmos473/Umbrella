@@ -73,6 +73,5 @@ struct ForecastCell: View {
                 .stroke(.white.opacity(0.18), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.12), radius: 10, y: 4)
-        .padding(.horizontal)
     }
 }

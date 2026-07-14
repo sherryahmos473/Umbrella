@@ -16,8 +16,17 @@ struct ContentView: View {
     @State private var viewModel = WeatherViewModel()
     @State private var networkMonitor = NetworkMonitor.shared
     @State private var showCityList = false
+    @State private var currentPage = 0
+    
+    private var homeLocationLocaltime: String? {
+        if case .success(let data) = viewModel.state {
+            return data.location.localtime
+        }
+        return nil
+    }
+    
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack(alignment: .bottom) {
 
             NavigationStack {
                 ViewStateContainer(state: viewModel.state) { data in
@@ -31,7 +40,7 @@ struct ContentView: View {
                     )
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .withWeatherBackground()
+                .withWeatherBackground(localtime: homeLocationLocaltime)
                 .onChange(of: networkMonitor.isConnected) { _, isConnected in
                     if isConnected {
                         Task {
@@ -43,7 +52,9 @@ struct ContentView: View {
                     await viewModel.fetchWeatherForCurrentLocation()
                 }
                 .task {
-                    await viewModel.fetchWeatherForCurrentLocation()
+                    if case .loading = viewModel.state {
+                        await viewModel.fetchWeatherForCurrentLocation()
+                    }
                 }
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
@@ -58,6 +69,12 @@ struct ContentView: View {
                 }
                 .navigationDestination(isPresented: $showCityList) {
                     CityListView()
+                        .environment(\.homeLocationLocaltime, homeLocationLocaltime)
+                }
+                .onChange(of: showCityList) { _, isPresented in
+                    if !isPresented {
+                        currentPage = 0
+                    }
                 }
             }
 
@@ -70,6 +87,17 @@ struct ContentView: View {
                     .background(.red)
                     .transition(.move(edge: .top))
             }
+            
+            // Page Indicator
+            HStack(spacing: 8) {
+                ForEach(0..<2, id: \.self) { index in
+                    Circle()
+                        .fill(index == currentPage ? .white : .white.opacity(0.4))
+                        .frame(width: 8, height: 8)
+                        .animation(.easeInOut(duration: 0.3), value: currentPage)
+                }
+            }
+            .padding(.bottom, 20)
         }
     }
 
@@ -81,6 +109,7 @@ struct ContentView: View {
 
         if isLeftSwipe && isHorizontal {
             showCityList = true
+            currentPage = 1
         }
     }
 }

@@ -36,7 +36,7 @@ struct WeatherDetailView: View {
             VStack(spacing: 10) {
                 ForEach(data.forecast.forecastday, id: \.dateEpoch) { day in
                     NavigationLink {
-                        DailyDetailsView(data: day.hour)
+                        DailyDetailsView(data: day.hour, localtime: data.location.localtime)
                     } label: {
                         ForecastCell(
                             label: formattedLabel(for: day.date),
